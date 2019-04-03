@@ -80,11 +80,10 @@ elif decimals > 0.85:
 else:
     overall_rounded = integer
 
-print(f'Sprache: {sprache_avg:.2f}')
-print(f'Inhalt: {inhalt_avg:.2f}')
-print(f'Methode – Formatierung: {formatierung_avg:.2f}')
-print(f'Methode – Quellenangabe: {quellenangabe_avg:.2f}')
-print(f'Methode – Evaluation: {evaluation_avg:.2f}')
-print('---')
-print(f'Durchschnittliche Gesamtnote: {overall}')
-print(f'Gesamtnote: {overall_rounded:.1f}')
+print(f'{"Sprache:":<25}{sprache_avg:>3.2f}',
+      f'\n{"Inhalt:":<25}{inhalt_avg:>3.2f}',
+      f'\n{"Methode – Formatierung:":<25}{formatierung_avg:>3.2f}',
+      f'\n{"Methode – Quellenangabe:":<25}{quellenangabe_avg:>3.2f}',
+      f'\n{"Methode – Evaluation:":<25}{evaluation_avg:>3.2f}', f'\n{"-"*29}',
+      f'\n{"Durchschnitt:":<25}{overall:>3.2f}',
+      f'\n{"Gesamtnote:":<25}{overall_rounded:>3.1f}')
