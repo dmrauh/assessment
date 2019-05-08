@@ -6,34 +6,28 @@ import pprint
 import configparser
 
 
-def print_weights(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
+def print_weights(grades):
 
     config = configparser.ConfigParser()
-    config.read(value)
+    config.read(grades)
 
     gewichte = dict(config.items('gewichte'))
     gewichte = {k: int(v) for k, v in gewichte.items()}
 
-    click.echo(pprint.pprint(gewichte))
-
-    ctx.exit()
-
+    pprint.pprint(gewichte)
 
 @click.command()
 @click.argument('grades', type=click.Path(exists=True), required=True, nargs=1)
 @click.option(
-    '-w',
     '--weights',
-    is_flag=False,
-    type=click.Path(exists=True),
-    callback=print_weights,
-    expose_value=False,
-    is_eager=True,
+    is_flag=True,
     help='Show the section\'s weights and exit.')
 @click.version_option('1.0.0')  # determine version number via setuptools
-def main(grades):
+def main(grades, weights):
+
+    if weights:
+        print_weights(grades)
+        return
 
     config = configparser.ConfigParser()
     config.read(grades)
