@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+
+from statistics import mean
+import click
+import pprint
+import configparser
+
+
+def print_weights(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+
+    config = configparser.ConfigParser()
+    config.read(value)
+
+    gewichte = dict(config.items('gewichte'))
+    gewichte = {k: int(v) for k, v in gewichte.items()}
+
+    click.echo(pprint.pprint(gewichte))
+
+    ctx.exit()
+
+
+@click.command()
+@click.argument('grades', type=click.Path(exists=True), required=True, nargs=1)
+@click.option(
+    '-w',
+    '--weights',
+    is_flag=False,
+    type=click.Path(exists=True),
+    callback=print_weights,
+    expose_value=False,
+    is_eager=True,
+    help='Show the section\'s weights and exit.')
+@click.version_option('1.0.0')  # determine version number via setuptools
+def main(grades):
+
+    config = configparser.ConfigParser()
+    config.read(grades)
+
+    sprache = dict(config.items('sprache'))
+    sprache = {k: int(v) for k, v in sprache.items()}
+
+    inhalt = dict(config.items('inhalt'))
+    inhalt = {k: int(v) for k, v in inhalt.items()}
+
+    formatierung = dict(config.items('formatierung'))
+    formatierung = {k: int(v) for k, v in formatierung.items()}
+
+    quellenangabe = dict(config.items('quellenangabe'))
+    quellenangabe = {k: int(v) for k, v in quellenangabe.items()}
+
+    implementierung = dict(config.items('implementierung'))
+    implementierung = {k: int(v) for k, v in implementierung.items()}
+
+    evaluation = dict(config.items('evaluation'))
+    evaluation = {k: int(v) for k, v in evaluation.items()}
+
+    gewichte = dict(config.items('gewichte'))
+    gewichte = {k: int(v) for k, v in gewichte.items()}
+
+    sprache_avg = mean(sprache.values())
+    inhalt_avg = mean(inhalt.values())
+    formatierung_avg = mean(formatierung.values())
+    quellenangabe_avg = mean(quellenangabe.values())
+    implementierung_avg = mean(implementierung.values())
+    evaluation_avg = mean(evaluation.values())
+
+    sprache_weighted = sprache_avg * gewichte['sprache']
+    inhalt_weighted = inhalt_avg * gewichte['inhalt']
+    formatierung_weighted = formatierung_avg * gewichte[
+        'methode – formatierung']
+    quellenangabe_weighted = quellenangabe_avg * gewichte[
+        'methode – quellenangabe']
+    implementierung_weighted = implementierung_avg * gewichte[
+        'methode – implementierung']
+    evaluation_weighted = evaluation_avg * gewichte['methode – evaluation']
+
+    overall = sprache_weighted \
+        + inhalt_weighted \
+        + formatierung_weighted \
+        + quellenangabe_weighted \
+        + implementierung_weighted \
+        + evaluation_weighted
+    overall /= sum(gewichte.values())
+    integer = overall // 1
+    decimals = overall % 1
+
+    if decimals > 0.15 and decimals <= 0.5:
+        overall_rounded = integer + 0.3
+    elif decimals > 0.5 and decimals <= 0.85:
+        overall_rounded = integer + 0.7
+    elif decimals > 0.85:
+        overall_rounded = integer + 1
+    else:
+        overall_rounded = integer
+
+    print(f'{"Sprache:":<28}{sprache_avg:>3.2f}',
+          f'\n{"Inhalt:":<28}{inhalt_avg:>3.2f}',
+          f'\n{"Methode – Formatierung:":<28}{formatierung_avg:>3.2f}',
+          f'\n{"Methode – Quellenangabe:":<28}{quellenangabe_avg:>3.2f}',
+          f'\n{"Methode – Implementierung:":<28}{implementierung_avg:>3.2f}',
+          f'\n{"Methode – Evaluation:":<28}{evaluation_avg:>3.2f}',
+          f'\n{"-"*32}', f'\n{"Durchschnitt:":<28}{overall:>3.2f}',
+          f'\n{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
+
+
+if __name__ == '__main__':
+    main()

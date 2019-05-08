@@ -6,6 +6,7 @@ stdenv.mkDerivation rec {
   buildInputs = [
     (python36.withPackages (ps: [
       ps.yapf
+      ps.click
       ps.pep8
     ]))
   ];
