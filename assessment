@@ -5,70 +5,126 @@ import click
 import pprint
 import configparser
 
+SPRACHE_KEY = 'sprache'
+INHALT_KEY = 'inhalt'
+FORMATIERUNG_KEY = 'formatierung'
+QUELLENANGABE_KEY = 'quellenangabe'
+IMPLEMENTIERUNG_KEY = 'implementierung'
+EVALUATION_KEY = 'evaluation'
+GEWICHTE_KEY = 'gewichte'
 
-def print_weights(grades):
 
-    config = configparser.ConfigParser()
-    config.read(grades)
+class GradeAverages:
+    def __init__(self, sprache, inhalt, formatierung, quellenangabe,
+                 implementierung, evaluation):
+        self.sprache = sprache
+        self.inhalt = inhalt
+        self.formatierung = formatierung
+        self.quellenangabe = quellenangabe
+        self.implementierung = implementierung
+        self.evaluation = evaluation
 
-    gewichte = dict(config.items('gewichte'))
-    gewichte = {k: int(v) for k, v in gewichte.items()}
 
-    pprint.pprint(gewichte)
+class GradeSections:
+    def __init__(self, sprache, inhalt, formatierung, quellenangabe,
+                 implementierung, evaluation):
+        self.sprache = sprache
+        self.inhalt = inhalt
+        self.formatierung = formatierung
+        self.quellenangabe = quellenangabe
+        self.implementierung = implementierung
+        self.evaluation = evaluation
 
-@click.command()
-@click.argument('grades', type=click.Path(exists=True), required=True, nargs=1)
-@click.option(
-    '--weights',
-    is_flag=True,
-    help='Show the section\'s weights and exit.')
-@click.version_option('1.0.0')  # determine version number via setuptools
-def main(grades, weights):
 
-    if weights:
-        print_weights(grades)
-        return
+def get_weights(config):
 
-    config = configparser.ConfigParser()
-    config.read(grades)
+    weights = dict(config.items(GEWICHTE_KEY))
+    weights = {k: int(v) for k, v in weights.items()}
 
-    sprache = dict(config.items('sprache'))
+    return weights
+
+
+def print_weights(weights):
+
+    click.echo(pprint.pformat(weights))
+
+
+def print_grades(averages, overall, overall_rounded):
+
+    click.echo(f'{"Sprache:":<28}{averages.sprache:>3.2f}')
+    click.echo(f'{"Inhalt:":<28}{averages.inhalt:>3.2f}')
+    click.echo(f'{"Methode – Formatierung:":<28}{averages.formatierung:>3.2f}')
+    click.echo(
+        f'{"Methode – Quellenangabe:":<28}{averages.quellenangabe:>3.2f}')
+    click.echo(
+        f'{"Methode – Implementierung:":<28}{averages.implementierung:>3.2f}')
+    click.echo(f'{"Methode – Evaluation:":<28}{averages.evaluation:>3.2f}')
+    click.echo(f'{"-"*32}')
+    click.echo(f'{"Durchschnitt:":<28}{overall:>3.2f}')
+    click.echo(f'{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
+
+
+def get_grade_sections(config):
+
+    sprache = dict(config.items(SPRACHE_KEY))
     sprache = {k: int(v) for k, v in sprache.items()}
 
-    inhalt = dict(config.items('inhalt'))
+    inhalt = dict(config.items(INHALT_KEY))
     inhalt = {k: int(v) for k, v in inhalt.items()}
 
-    formatierung = dict(config.items('formatierung'))
+    formatierung = dict(config.items(FORMATIERUNG_KEY))
     formatierung = {k: int(v) for k, v in formatierung.items()}
 
-    quellenangabe = dict(config.items('quellenangabe'))
+    quellenangabe = dict(config.items(QUELLENANGABE_KEY))
     quellenangabe = {k: int(v) for k, v in quellenangabe.items()}
 
-    implementierung = dict(config.items('implementierung'))
+    implementierung = dict(config.items(IMPLEMENTIERUNG_KEY))
     implementierung = {k: int(v) for k, v in implementierung.items()}
 
-    evaluation = dict(config.items('evaluation'))
+    evaluation = dict(config.items(EVALUATION_KEY))
     evaluation = {k: int(v) for k, v in evaluation.items()}
 
-    gewichte = dict(config.items('gewichte'))
-    gewichte = {k: int(v) for k, v in gewichte.items()}
+    grade_sections = GradeSections(sprache, inhalt, formatierung,
+                                   quellenangabe, implementierung, evaluation)
 
-    sprache_avg = mean(sprache.values())
-    inhalt_avg = mean(inhalt.values())
-    formatierung_avg = mean(formatierung.values())
-    quellenangabe_avg = mean(quellenangabe.values())
-    implementierung_avg = mean(implementierung.values())
-    evaluation_avg = mean(evaluation.values())
+    return grade_sections
 
-    sprache_weighted = sprache_avg * gewichte['sprache']
-    inhalt_weighted = inhalt_avg * gewichte['inhalt']
-    formatierung_weighted = formatierung_avg * gewichte[
-        'methode – formatierung']
-    quellenangabe_weighted = quellenangabe_avg * gewichte[
-        'methode – quellenangabe']
-    implementierung_weighted = implementierung_avg * gewichte[
-        'methode – implementierung']
-    evaluation_weighted = evaluation_avg * gewichte['methode – evaluation']
+
+def calculate_averages(config):
+
+    grade_sections = get_grade_sections(config)
+
+    sprache_avg = mean(grade_sections.sprache.values())
+    inhalt_avg = mean(grade_sections.inhalt.values())
+    formatierung_avg = mean(grade_sections.formatierung.values())
+    quellenangabe_avg = mean(grade_sections.quellenangabe.values())
+    implementierung_avg = mean(grade_sections.implementierung.values())
+    evaluation_avg = mean(grade_sections.evaluation.values())
+
+    averages = GradeAverages(sprache_avg, inhalt_avg, formatierung_avg,
+                             quellenangabe_avg, implementierung_avg,
+                             evaluation_avg)
+
+    return averages
+
+
+def load_grades(grades_file):
+
+    config = configparser.ConfigParser()
+    config.read(grades_file)
+    return config
+
+
+def calculate_overall(averages, gewichte):
+
+    sprache_weighted = averages.sprache * gewichte[SPRACHE_KEY]
+    inhalt_weighted = averages.inhalt * gewichte[INHALT_KEY]
+    formatierung_weighted = averages.formatierung * gewichte[FORMATIERUNG_KEY]
+    quellenangabe_weighted = averages.quellenangabe * gewichte[
+        QUELLENANGABE_KEY]
+    implementierung_weighted = averages.implementierung * gewichte[
+        IMPLEMENTIERUNG_KEY]
+    evaluation_weighted = averages.evaluation * gewichte[EVALUATION_KEY]
 
     overall = sprache_weighted \
         + inhalt_weighted \
@@ -77,6 +133,12 @@ def main(grades, weights):
         + implementierung_weighted \
         + evaluation_weighted
     overall /= sum(gewichte.values())
+
+    return overall
+
+
+def round_overall(overall):
+
     integer = overall // 1
     decimals = overall % 1
 
@@ -89,14 +151,29 @@ def main(grades, weights):
     else:
         overall_rounded = integer
 
-    print(f'{"Sprache:":<28}{sprache_avg:>3.2f}',
-          f'\n{"Inhalt:":<28}{inhalt_avg:>3.2f}',
-          f'\n{"Methode – Formatierung:":<28}{formatierung_avg:>3.2f}',
-          f'\n{"Methode – Quellenangabe:":<28}{quellenangabe_avg:>3.2f}',
-          f'\n{"Methode – Implementierung:":<28}{implementierung_avg:>3.2f}',
-          f'\n{"Methode – Evaluation:":<28}{evaluation_avg:>3.2f}',
-          f'\n{"-"*32}', f'\n{"Durchschnitt:":<28}{overall:>3.2f}',
-          f'\n{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
+    return overall_rounded
+
+
+@click.command()
+@click.argument('grades', type=click.Path(exists=True), required=True, nargs=1)
+@click.option(
+    '--weights', is_flag=True, help='Show the section\'s weights and exit.')
+@click.version_option('1.0.0')
+@click.pass_context
+def main(ctx, grades, weights):
+
+    config = load_grades(grades)
+    section_weights = get_weights(config)
+
+    if weights:
+        print_weights(section_weights)
+        ctx.exit()
+
+    averages = calculate_averages(config)
+    overall = calculate_overall(averages, section_weights)
+    overall_rounded = round_overall(overall)
+
+    print_grades(averages, overall, overall_rounded)
 
 
 if __name__ == '__main__':
