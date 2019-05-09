@@ -1,4 +1,4 @@
-with import /home/dmrauh/Documents/Code/nixpkgs/default.nix {};
+with import ~/Documents/Code/nixpkgs/default.nix {};
 
 stdenv.mkDerivation rec {
   name = "vacation-env";
