@@ -48,7 +48,8 @@ def print_weights(weights):
 
     click.echo(pprint.pformat(weights))
 
-def config_item_to_dict(config_items):
+
+def config_items_to_dict(config_items):
 
     dictionary = dict(config_items)
     dictionary = {k: int(v) for k, v in dictionary.items()}
@@ -73,17 +74,17 @@ def print_grades(averages, overall, overall_rounded):
 
 def get_grade_sections(config):
 
-    sprache = config_item_to_dict(config.items(SPRACHE_KEY))
+    sprache = config_items_to_dict(config.items(SPRACHE_KEY))
 
-    inhalt = config_item_to_dict(config.items(INHALT_KEY))
+    inhalt = config_items_to_dict(config.items(INHALT_KEY))
 
-    formatierung = config_item_to_dict(config.items(FORMATIERUNG_KEY))
+    formatierung = config_items_to_dict(config.items(FORMATIERUNG_KEY))
 
-    quellenangabe = config_item_to_dict(config.items(QUELLENANGABE_KEY))
+    quellenangabe = config_items_to_dict(config.items(QUELLENANGABE_KEY))
 
-    implementierung = config_item_to_dict(config.items(IMPLEMENTIERUNG_KEY))
+    implementierung = config_items_to_dict(config.items(IMPLEMENTIERUNG_KEY))
 
-    evaluation = config_item_to_dict(config.items(EVALUATION_KEY))
+    evaluation = config_items_to_dict(config.items(EVALUATION_KEY))
 
     grade_sections = GradeSections(sprache, inhalt, formatierung,
                                    quellenangabe, implementierung, evaluation)
