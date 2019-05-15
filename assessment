@@ -48,6 +48,13 @@ def print_weights(weights):
 
     click.echo(pprint.pformat(weights))
 
+def config_item_to_dict(config_items):
+
+    dictionary = dict(config_items)
+    dictionary = {k: int(v) for k, v in dictionary.items()}
+
+    return dictionary
+
 
 def print_grades(averages, overall, overall_rounded):
 
@@ -66,23 +73,17 @@ def print_grades(averages, overall, overall_rounded):
 
 def get_grade_sections(config):
 
-    sprache = dict(config.items(SPRACHE_KEY))
-    sprache = {k: int(v) for k, v in sprache.items()}
+    sprache = config_item_to_dict(config.items(SPRACHE_KEY))
 
-    inhalt = dict(config.items(INHALT_KEY))
-    inhalt = {k: int(v) for k, v in inhalt.items()}
+    inhalt = config_item_to_dict(config.items(INHALT_KEY))
 
-    formatierung = dict(config.items(FORMATIERUNG_KEY))
-    formatierung = {k: int(v) for k, v in formatierung.items()}
+    formatierung = config_item_to_dict(config.items(FORMATIERUNG_KEY))
 
-    quellenangabe = dict(config.items(QUELLENANGABE_KEY))
-    quellenangabe = {k: int(v) for k, v in quellenangabe.items()}
+    quellenangabe = config_item_to_dict(config.items(QUELLENANGABE_KEY))
 
-    implementierung = dict(config.items(IMPLEMENTIERUNG_KEY))
-    implementierung = {k: int(v) for k, v in implementierung.items()}
+    implementierung = config_item_to_dict(config.items(IMPLEMENTIERUNG_KEY))
 
-    evaluation = dict(config.items(EVALUATION_KEY))
-    evaluation = {k: int(v) for k, v in evaluation.items()}
+    evaluation = config_item_to_dict(config.items(EVALUATION_KEY))
 
     grade_sections = GradeSections(sprache, inhalt, formatierung,
                                    quellenangabe, implementierung, evaluation)
