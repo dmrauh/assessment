@@ -36,14 +36,6 @@ class GradeSections:
         self.evaluation = evaluation
 
 
-def get_weights(config):
-
-    weights = dict(config.items(GEWICHTE_KEY))
-    weights = {k: int(v) for k, v in weights.items()}
-
-    return weights
-
-
 def print_weights(weights):
 
     click.echo(pprint.pformat(weights))
@@ -86,10 +78,8 @@ def get_grade_sections(config):
 
     evaluation = config_items_to_dict(config.items(EVALUATION_KEY))
 
-    grade_sections = GradeSections(sprache, inhalt, formatierung,
-                                   quellenangabe, implementierung, evaluation)
-
-    return grade_sections
+    return GradeSections(sprache, inhalt, formatierung, quellenangabe,
+                         implementierung, evaluation)
 
 
 def calculate_averages(config):
@@ -103,21 +93,20 @@ def calculate_averages(config):
     implementierung_avg = mean(grade_sections.implementierung.values())
     evaluation_avg = mean(grade_sections.evaluation.values())
 
-    averages = GradeAverages(sprache_avg, inhalt_avg, formatierung_avg,
-                             quellenangabe_avg, implementierung_avg,
-                             evaluation_avg)
-
-    return averages
+    return GradeAverages(sprache_avg, inhalt_avg, formatierung_avg,
+                         quellenangabe_avg, implementierung_avg,
+                         evaluation_avg)
 
 
 def load_grades(grades_file):
 
     config = configparser.ConfigParser()
     config.read(grades_file)
+
     return config
 
 
-def calculate_overall(averages, gewichte):
+def weigh_averages(averages, gewichte):
 
     sprache_weighted = averages.sprache * gewichte[SPRACHE_KEY]
     inhalt_weighted = averages.inhalt * gewichte[INHALT_KEY]
@@ -128,32 +117,56 @@ def calculate_overall(averages, gewichte):
         IMPLEMENTIERUNG_KEY]
     evaluation_weighted = averages.evaluation * gewichte[EVALUATION_KEY]
 
-    overall = sprache_weighted \
-        + inhalt_weighted \
-        + formatierung_weighted \
-        + quellenangabe_weighted \
-        + implementierung_weighted \
-        + evaluation_weighted
+    return GradeAverages(sprache_weighted, inhalt_weighted,
+                         formatierung_weighted, quellenangabe_weighted,
+                         implementierung_weighted, evaluation_weighted)
+
+
+def calculate_weighted_average(weighted_averages, gewichte):
+
+    overall = weighted_averages.sprache \
+        + weighted_averages.inhalt \
+        + weighted_averages.formatierung \
+        + weighted_averages.quellenangabe \
+        + weighted_averages.implementierung \
+        + weighted_averages.evaluation
     overall /= sum(gewichte.values())
 
     return overall
 
 
-def round_overall(overall):
+def calculate_overall(averages, gewichte):
 
-    integer = overall // 1
-    decimals = overall % 1
+    weighted_averages = weigh_averages(averages, gewichte)
+
+    return calculate_weighted_average(weighted_averages, gewichte)
+
+
+def split_decimal_number(decimal_number):
+
+    integer = decimal_number // 1
+    decimals = decimal_number % 1
+
+    return integer, decimals
+
+
+def round_to_nearest_grade(decimals):
 
     if decimals > 0.15 and decimals <= 0.5:
-        overall_rounded = integer + 0.3
+        return 0.3
     elif decimals > 0.5 and decimals <= 0.85:
-        overall_rounded = integer + 0.7
+        return 0.7
     elif decimals > 0.85:
-        overall_rounded = integer + 1
+        return 1
     else:
-        overall_rounded = integer
+        return 0
 
-    return overall_rounded
+
+def round_overall(overall):
+
+    integer, decimals = split_decimal_number(overall)
+
+    return integer + round_to_nearest_grade(decimals)
 
 
 @click.command()
@@ -165,7 +178,7 @@ def round_overall(overall):
 def main(ctx, grades, weights):
 
     config = load_grades(grades)
-    section_weights = get_weights(config)
+    section_weights = config_items_to_dict(config.items(GEWICHTE_KEY))
 
     if weights:
         print_weights(section_weights)
