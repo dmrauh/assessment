@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from statistics import mean
-from typing import Iterable, Mapping, Tuple
+from typing import Dict, Iterable, Mapping, Tuple
 from click import Context
 from configparser import ConfigParser
 import click
