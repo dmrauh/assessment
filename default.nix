@@ -1,4 +1,4 @@
-with import ~/Documents/Code/nixpkgs/default.nix {};
+with import <nixpkgs> {};
 
 stdenv.mkDerivation rec {
   name = "assessment-env";
