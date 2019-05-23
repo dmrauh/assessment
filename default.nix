@@ -1,7 +1,7 @@
 with import ~/Documents/Code/nixpkgs/default.nix {};
 
 stdenv.mkDerivation rec {
-  name = "vacation-env";
+  name = "assessment-env";
 
   buildInputs = [
     (python37.withPackages (ps: [
