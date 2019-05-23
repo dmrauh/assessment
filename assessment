@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
+from dataclasses import dataclass
 from statistics import mean
+from typing import Iterable, Mapping, Tuple
+from click import Context
+from configparser import ConfigParser
 import click
 import pprint
 import configparser
@@ -14,42 +18,39 @@ EVALUATION_KEY = 'evaluation'
 GEWICHTE_KEY = 'gewichte'
 
 
+@dataclass
 class GradeAverages:
-    def __init__(self, sprache, inhalt, formatierung, quellenangabe,
-                 implementierung, evaluation):
-        self.sprache = sprache
-        self.inhalt = inhalt
-        self.formatierung = formatierung
-        self.quellenangabe = quellenangabe
-        self.implementierung = implementierung
-        self.evaluation = evaluation
+    sprache: float
+    inhalt: float
+    formatierung: float
+    quellenangabe: float
+    implementierung: float
+    evaluation: float
 
 
+@dataclass
 class GradeSections:
-    def __init__(self, sprache, inhalt, formatierung, quellenangabe,
-                 implementierung, evaluation):
-        self.sprache = sprache
-        self.inhalt = inhalt
-        self.formatierung = formatierung
-        self.quellenangabe = quellenangabe
-        self.implementierung = implementierung
-        self.evaluation = evaluation
+    sprache: Dict[str, int]
+    inhalt: Dict[str, int]
+    formatierung: Dict[str, int]
+    quellenangabe: Dict[str, int]
+    implementierung: Dict[str, int]
+    evaluation: Dict[str, int]
 
 
-def print_weights(weights):
+def print_weights(weights: Mapping[str, int]) -> None:
 
     click.echo(pprint.pformat(weights))
 
 
-def config_items_to_dict(config_items):
+def config_items_to_dict(config_items: Iterable[Tuple[str, str]]
+                         ) -> Dict[str, int]:
 
-    dictionary = dict(config_items)
-    dictionary = {k: int(v) for k, v in dictionary.items()}
-
-    return dictionary
+    return {k: int(v) for k, v in dict(config_items).items()}
 
 
-def print_grades(averages, overall, overall_rounded):
+def print_grades(averages: GradeAverages, overall: float,
+                 overall_rounded: float) -> None:
 
     click.echo(f'{"Sprache:":<28}{averages.sprache:>3.2f}')
     click.echo(f'{"Inhalt:":<28}{averages.inhalt:>3.2f}')
@@ -64,7 +65,7 @@ def print_grades(averages, overall, overall_rounded):
     click.echo(f'{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
 
 
-def get_grade_sections(config):
+def get_grade_sections(config: ConfigParser) -> GradeSections:
 
     sprache = config_items_to_dict(config.items(SPRACHE_KEY))
 
@@ -82,7 +83,7 @@ def get_grade_sections(config):
                          implementierung, evaluation)
 
 
-def calculate_averages(config):
+def calculate_averages(config: ConfigParser) -> GradeAverages:
 
     grade_sections = get_grade_sections(config)
 
@@ -98,7 +99,7 @@ def calculate_averages(config):
                          evaluation_avg)
 
 
-def load_grades(grades_file):
+def load_grades(grades_file: str) -> ConfigParser:
 
     config = configparser.ConfigParser()
     config.read(grades_file)
@@ -106,7 +107,8 @@ def load_grades(grades_file):
     return config
 
 
-def weigh_averages(averages, gewichte):
+def weigh_averages(averages: GradeAverages,
+                   gewichte: Mapping[str, int]) -> GradeAverages:
 
     sprache_weighted = averages.sprache * gewichte[SPRACHE_KEY]
     inhalt_weighted = averages.inhalt * gewichte[INHALT_KEY]
@@ -122,7 +124,8 @@ def weigh_averages(averages, gewichte):
                          implementierung_weighted, evaluation_weighted)
 
 
-def calculate_weighted_average(weighted_averages, gewichte):
+def calculate_weighted_average(weighted_averages: GradeAverages,
+                               gewichte: Mapping[str, int]) -> float:
 
     overall = weighted_averages.sprache \
         + weighted_averages.inhalt \
@@ -135,34 +138,35 @@ def calculate_weighted_average(weighted_averages, gewichte):
     return overall
 
 
-def calculate_overall(averages, gewichte):
+def calculate_overall(averages: GradeAverages,
+                      gewichte: Mapping[str, int]) -> float:
 
     weighted_averages = weigh_averages(averages, gewichte)
 
     return calculate_weighted_average(weighted_averages, gewichte)
 
 
-def split_decimal_number(decimal_number):
+def split_decimal_number(decimal_number: float) -> Tuple[int, float]:
 
-    integer = decimal_number // 1
+    integer = int(decimal_number)
     decimals = decimal_number % 1
 
     return integer, decimals
 
 
-def round_to_nearest_grade(decimals):
+def round_to_nearest_grade(decimals: float) -> float:
 
     if decimals > 0.15 and decimals <= 0.5:
         return 0.3
     elif decimals > 0.5 and decimals <= 0.85:
         return 0.7
     elif decimals > 0.85:
-        return 1
+        return 1.0
     else:
-        return 0
+        return 0.0
 
 
-def round_overall(overall):
+def round_overall(overall: float) -> float:
 
     integer, decimals = split_decimal_number(overall)
 
@@ -171,11 +175,12 @@ def round_overall(overall):
 
 @click.command()
 @click.argument('grades', type=click.Path(exists=True), required=True, nargs=1)
-@click.option(
-    '--weights', is_flag=True, help='Show the section\'s weights and exit.')
+@click.option('--weights',
+              is_flag=True,
+              help='Show the section\'s weights and exit.')
 @click.version_option('1.0.0')
 @click.pass_context
-def main(ctx, grades, weights):
+def main(ctx: Context, grades: str, weights: bool) -> None:
 
     config = load_grades(grades)
     section_weights = config_items_to_dict(config.items(GEWICHTE_KEY))

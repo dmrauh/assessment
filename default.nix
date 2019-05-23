@@ -4,11 +4,12 @@ stdenv.mkDerivation rec {
   name = "vacation-env";
 
   buildInputs = [
-    (python36.withPackages (ps: [
+    (python37.withPackages (ps: [
       ps.yapf
       ps.click
       ps.pep8
     ]))
+    mypy
   ];
 }
 
