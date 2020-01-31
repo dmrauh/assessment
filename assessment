@@ -7,12 +7,15 @@ import click as cl
 import configparser as cp
 import pprint as pp
 
+DELTA = 1e-3
+
 SPRACHE_KEY = 'sprache'
 INHALT_KEY = 'inhalt'
 FORMATIERUNG_KEY = 'formatierung'
 QUELLENANGABE_KEY = 'quellenangabe'
 IMPLEMENTIERUNG_KEY = 'implementierung'
 EVALUATION_KEY = 'evaluation'
+MALI_KEY = 'mali'
 GEWICHTE_KEY = 'gewichte'
 
 
@@ -41,13 +44,17 @@ def print_weights(weights: ty.Mapping[str, int]) -> None:
     cl.echo(pp.pformat(weights))
 
 
-def config_items_to_dict(config_items: ty.Iterable[ty.Tuple[str, str]]
-                         ) -> ty.Dict[str, int]:
+def config_items_to_dict(
+        config_items: ty.Iterable[ty.Tuple[str, str]]) -> ty.Dict[str, int]:
 
     return {k: int(v) for k, v in dict(config_items).items()}
 
 
-def print_grades(averages: GradeAverages, overall: float,
+def read_mali_from_config(config: cp.ConfigParser) -> bool:
+    return config.items(MALI_KEY)[0][1] == 'True'
+
+
+def print_grades(averages: GradeAverages, overall: float, mali: bool,
                  overall_rounded: float) -> None:
 
     cl.echo(f'{"Sprache:":<28}{averages.sprache:>3.2f}')
@@ -57,8 +64,10 @@ def print_grades(averages: GradeAverages, overall: float,
     cl.echo(
         f'{"Methode – Implementierung:":<28}{averages.implementierung:>3.2f}')
     cl.echo(f'{"Methode – Evaluation:":<28}{averages.evaluation:>3.2f}')
-    cl.echo(f'{"-"*32}')
+    cl.echo(f'{"-"*33}')
     cl.echo(f'{"Durchschnitt:":<28}{overall:>3.2f}')
+    cl.echo(f'{"Mali:":<28}{mali}')
+    cl.echo(f'{"-"*33}')
     cl.echo(f'{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
 
 
@@ -163,11 +172,28 @@ def round_to_nearest_grade(decimals: float) -> float:
         return 0.0
 
 
-def round_overall(overall: float) -> float:
+def add_grade_level(grade: float) -> float:
+
+    integer, decimals = split_decimal_number(grade)
+
+    if abs(decimals - 0.3) < DELTA:
+        grade += 0.4
+    else:
+        grade += 0.3
+
+    return grade
+
+
+def round_overall(overall: float, mali: bool) -> float:
 
     integer, decimals = split_decimal_number(overall)
 
-    return integer + round_to_nearest_grade(decimals)
+    rounded_overall = integer + round_to_nearest_grade(decimals)
+
+    if mali:
+        rounded_overall = add_grade_level(rounded_overall)
+
+    return rounded_overall
 
 
 @cl.command()
@@ -187,10 +213,12 @@ def main(ctx: cl.Context, grades: str, weights: bool) -> None:
         ctx.exit()
 
     averages = calculate_averages(config)
-    overall = calculate_overall(averages, section_weights)
-    overall_rounded = round_overall(overall)
+    mali = read_mali_from_config(config)
 
-    print_grades(averages, overall, overall_rounded)
+    overall = calculate_overall(averages, section_weights)
+    overall_rounded = round_overall(overall, mali)
+
+    print_grades(averages, overall, mali, overall_rounded)
 
 
 if __name__ == '__main__':
