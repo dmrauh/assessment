@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env nix-shell
+#! nix-shell -i python -p "python3.withPackages (ps: [ ps.click ])"
 
-import dataclasses as dc
-import statistics as st
-import typing as ty
-import click as cl
-import configparser as cp
-import pprint as pp
+from click import argument, command, echo, option, Path, version_option
+from configparser import ConfigParser
+from dataclasses import dataclass
+from pprint import pformat
+from statistics import mean
+from typing import Dict, Iterable, Mapping, Tuple
 
 DELTA = 1e-3
 
@@ -19,7 +20,7 @@ MALI_KEY = 'mali'
 GEWICHTE_KEY = 'gewichte'
 
 
-@dc.dataclass
+@dataclass
 class GradeAverages:
     sprache: float
     inhalt: float
@@ -29,49 +30,48 @@ class GradeAverages:
     evaluation: float
 
 
-@dc.dataclass
+@dataclass
 class GradeSections:
-    sprache: ty.Dict[str, int]
-    inhalt: ty.Dict[str, int]
-    formatierung: ty.Dict[str, int]
-    quellenangabe: ty.Dict[str, int]
-    implementierung: ty.Dict[str, int]
-    evaluation: ty.Dict[str, int]
+    sprache: Dict[str, int]
+    inhalt: Dict[str, int]
+    formatierung: Dict[str, int]
+    quellenangabe: Dict[str, int]
+    implementierung: Dict[str, int]
+    evaluation: Dict[str, int]
 
 
-def print_weights(weights: ty.Mapping[str, int]) -> None:
+def print_weights(weights: Mapping[str, int]) -> None:
 
-    cl.echo(pp.pformat(weights))
+    echo(pformat(weights))
 
 
 def config_items_to_dict(
-        config_items: ty.Iterable[ty.Tuple[str, str]]) -> ty.Dict[str, int]:
+        config_items: Iterable[Tuple[str, str]]) -> Dict[str, int]:
 
     return {k: int(v) for k, v in dict(config_items).items()}
 
 
-def read_mali_from_config(config: cp.ConfigParser) -> bool:
+def read_mali_from_config(config: ConfigParser) -> bool:
     return config.items(MALI_KEY)[0][1] == 'True'
 
 
 def print_grades(averages: GradeAverages, overall: float, mali: bool,
                  overall_rounded: float) -> None:
 
-    cl.echo(f'{"Sprache:":<28}{averages.sprache:>3.2f}')
-    cl.echo(f'{"Inhalt:":<28}{averages.inhalt:>3.2f}')
-    cl.echo(f'{"Methode – Formatierung:":<28}{averages.formatierung:>3.2f}')
-    cl.echo(f'{"Methode – Quellenangabe:":<28}{averages.quellenangabe:>3.2f}')
-    cl.echo(
-        f'{"Methode – Implementierung:":<28}{averages.implementierung:>3.2f}')
-    cl.echo(f'{"Methode – Evaluation:":<28}{averages.evaluation:>3.2f}')
-    cl.echo(f'{"-"*33}')
-    cl.echo(f'{"Durchschnitt:":<28}{overall:>3.2f}')
-    cl.echo(f'{"Mali:":<28}{mali}')
-    cl.echo(f'{"-"*33}')
-    cl.echo(f'{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
+    echo(f'{"Sprache:":<28}{averages.sprache:>3.2f}')
+    echo(f'{"Inhalt:":<28}{averages.inhalt:>3.2f}')
+    echo(f'{"Methode – Formatierung:":<28}{averages.formatierung:>3.2f}')
+    echo(f'{"Methode – Quellenangabe:":<28}{averages.quellenangabe:>3.2f}')
+    echo(f'{"Methode – Implementierung:":<28}{averages.implementierung:>3.2f}')
+    echo(f'{"Methode – Evaluation:":<28}{averages.evaluation:>3.2f}')
+    echo(f'{"-"*33}')
+    echo(f'{"Durchschnitt:":<28}{overall:>3.2f}')
+    echo(f'{"Mali:":<28}{mali}')
+    echo(f'{"-"*33}')
+    echo(f'{"Gesamtnote:":<28}{overall_rounded:>3.1f}')
 
 
-def get_grade_sections(config: cp.ConfigParser) -> GradeSections:
+def get_grade_sections(config: ConfigParser) -> GradeSections:
 
     sprache = config_items_to_dict(config.items(SPRACHE_KEY))
 
@@ -89,32 +89,32 @@ def get_grade_sections(config: cp.ConfigParser) -> GradeSections:
                          implementierung, evaluation)
 
 
-def calculate_averages(config: cp.ConfigParser) -> GradeAverages:
+def calculate_averages(config: ConfigParser) -> GradeAverages:
 
     grade_sections = get_grade_sections(config)
 
-    sprache_avg = st.mean(grade_sections.sprache.values())
-    inhalt_avg = st.mean(grade_sections.inhalt.values())
-    formatierung_avg = st.mean(grade_sections.formatierung.values())
-    quellenangabe_avg = st.mean(grade_sections.quellenangabe.values())
-    implementierung_avg = st.mean(grade_sections.implementierung.values())
-    evaluation_avg = st.mean(grade_sections.evaluation.values())
+    sprache_avg = mean(grade_sections.sprache.values())
+    inhalt_avg = mean(grade_sections.inhalt.values())
+    formatierung_avg = mean(grade_sections.formatierung.values())
+    quellenangabe_avg = mean(grade_sections.quellenangabe.values())
+    implementierung_avg = mean(grade_sections.implementierung.values())
+    evaluation_avg = mean(grade_sections.evaluation.values())
 
     return GradeAverages(sprache_avg, inhalt_avg, formatierung_avg,
                          quellenangabe_avg, implementierung_avg,
                          evaluation_avg)
 
 
-def load_grades(grades_file: str) -> cp.ConfigParser:
+def load_config(grades_file: str) -> ConfigParser:
 
-    config = cp.ConfigParser()
+    config = ConfigParser()
     config.read(grades_file)
 
     return config
 
 
 def weigh_averages(averages: GradeAverages,
-                   gewichte: ty.Mapping[str, int]) -> GradeAverages:
+                   gewichte: Mapping[str, int]) -> GradeAverages:
 
     sprache_weighted = averages.sprache * gewichte[SPRACHE_KEY]
     inhalt_weighted = averages.inhalt * gewichte[INHALT_KEY]
@@ -131,7 +131,7 @@ def weigh_averages(averages: GradeAverages,
 
 
 def calculate_weighted_average(weighted_averages: GradeAverages,
-                               gewichte: ty.Mapping[str, int]) -> float:
+                               gewichte: Mapping[str, int]) -> float:
 
     overall = weighted_averages.sprache \
         + weighted_averages.inhalt \
@@ -145,14 +145,14 @@ def calculate_weighted_average(weighted_averages: GradeAverages,
 
 
 def calculate_overall(averages: GradeAverages,
-                      gewichte: ty.Mapping[str, int]) -> float:
+                      gewichte: Mapping[str, int]) -> float:
 
     weighted_averages = weigh_averages(averages, gewichte)
 
     return calculate_weighted_average(weighted_averages, gewichte)
 
 
-def split_decimal_number(decimal_number: float) -> ty.Tuple[int, float]:
+def split_decimal_number(decimal_number: float) -> Tuple[int, float]:
 
     integer = int(decimal_number)
     decimals = decimal_number % 1
@@ -196,29 +196,32 @@ def round_overall(overall: float, mali: bool) -> float:
     return rounded_overall
 
 
-@cl.command()
-@cl.argument('grades', type=cl.Path(exists=True), required=True, nargs=1)
-@cl.option('--weights',
-           is_flag=True,
-           help='Show the section\'s weights and exit.')
-@cl.version_option('1.0.0')
-@cl.pass_context
-def main(ctx: cl.Context, grades: str, weights: bool) -> None:
-
-    config = load_grades(grades)
-    section_weights = config_items_to_dict(config.items(GEWICHTE_KEY))
-
-    if weights:
-        print_weights(section_weights)
-        ctx.exit()
+def assess(config: ConfigParser, weights: Mapping[str, int]) -> None:
 
     averages = calculate_averages(config)
     mali = read_mali_from_config(config)
 
-    overall = calculate_overall(averages, section_weights)
+    overall = calculate_overall(averages, weights)
     overall_rounded = round_overall(overall, mali)
 
     print_grades(averages, overall, mali, overall_rounded)
+
+
+@command()
+@argument('grades', type=Path(exists=True), required=True, nargs=1)
+@option('--weights',
+        is_flag=True,
+        help='Show the section\'s weights and exit.')
+@version_option('1.0.0')
+def main(grades: str, weights: bool) -> None:
+
+    config = load_config(grades)
+    section_weights = config_items_to_dict(config.items(GEWICHTE_KEY))
+
+    if weights:
+        print_weights(section_weights)
+    else:
+        assess(config, section_weights)
 
 
 if __name__ == '__main__':
