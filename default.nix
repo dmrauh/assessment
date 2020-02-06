@@ -18,3 +18,4 @@ stdenv.mkDerivation {
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${R}/lib/R/lib:${readline}/lib
   '';
 }
+
