@@ -5,7 +5,7 @@ from pprint import pformat
 from statistics import mean
 from typing import Dict, Iterable, Mapping, Tuple
 
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 DELTA = 1e-3
 
