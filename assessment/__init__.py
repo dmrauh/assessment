@@ -1,12 +1,11 @@
-#!/usr/bin/env nix-shell
-#! nix-shell -i python -p "python3.withPackages (ps: with ps; [ click ])"
-
 from click import argument, command, echo, option, Path, version_option
 from configparser import ConfigParser
 from dataclasses import dataclass
 from pprint import pformat
 from statistics import mean
 from typing import Dict, Iterable, Mapping, Tuple
+
+__version__ = '1.1.0'
 
 DELTA = 1e-3
 
@@ -270,7 +269,7 @@ def assess(config: ConfigParser, weights: Mapping[str, int]) -> str:
 
     averages = calculate_averages(config)
     mali = read_mali_from_config(config)
-    overalls = calculate_grade_overalls(mali, weights, mali)
+    overalls = calculate_grade_overalls(mali, weights, averages)
 
     averages_printer = AveragesPrinter(weights, averages)
     overalls_printer = OverallsPrinter(overalls, mali)
@@ -284,7 +283,7 @@ def assess(config: ConfigParser, weights: Mapping[str, int]) -> str:
 @option('--weights',
         is_flag=True,
         help='Show the section\'s weights and exit.')
-@version_option('1.1.0')
+@version_option(__version__)
 def main(grades: str, out: str, weights: bool) -> None:
 
     config = load_config(grades)
