@@ -277,7 +277,7 @@ def assess(config: ConfigParser, weights: Mapping[str, int]) -> str:
 @option('--weights',
         is_flag=True,
         help='Show the section\'s weights and exit.')
-@version_option('1.0.0')
+@version_option('1.1.0')
 def main(grades: str, out: str, weights: bool) -> None:
 
     config = load_config(grades)
