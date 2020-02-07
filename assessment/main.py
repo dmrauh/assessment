@@ -261,7 +261,7 @@ def calculate_grade_overalls(mali: bool, weights: Mapping[str, int],
 
 def write_assessment(file_name: str, assessment: str) -> None:
 
-    with open(file_name, 'w') as fh:
+    with open(file_name, 'w', encoding='utf_8') as fh:
         fh.write(assessment + '\n\n')
 
 
