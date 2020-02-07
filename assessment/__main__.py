@@ -1,3 +1,0 @@
-import assessment
-
-assessment.main()
