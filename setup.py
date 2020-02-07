@@ -11,4 +11,6 @@ setup(name='assessment',
       license='Apache License, Version 2.0',
       packages=['assessment'],
       classifiers=['Environment :: Console'],
+      python_requires=">=3.6",
+      install_requires=['click>=7'],
       entry_points={'console_scripts': ['assessment = assessment:main']})
