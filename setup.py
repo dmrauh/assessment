@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from assessment.main import __version__ as version
+from assessment import __version__ as version
 
 with open('README.md', 'r', encoding='utf_8') as fd:
     setup(name='assessment',
@@ -22,6 +22,6 @@ with open('README.md', 'r', encoding='utf_8') as fd:
           python_requires=">=3.6",
           install_requires=['click>=7'],
           entry_points={
-              'console_scripts': ['assessment = assessment.main:main']
+              'console_scripts': ['assessment = assessment:main']
           })
 
