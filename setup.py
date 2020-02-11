@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from setuptools import setup, find_packages
+from setuptools import setup
 
 from assessment import __version__ as version
+from assessment import GRADES_FILE_NAME
 
 with open('README.md', 'r', encoding='utf_8') as fd:
     setup(name='assessment',
@@ -25,7 +26,9 @@ with open('README.md', 'r', encoding='utf_8') as fd:
           author='Dominik Rauh',
           author_email='dominik.rauh@informatik.uni-augsburg.de',
           license='Apache License, Version 2.0',
-          packages=find_packages(),
+          packages=['assessment', 'assessment.data'],
+          package_dir={'assessment': 'assessment'},
+          package_data={'assessment': [f'data/{GRADES_FILE_NAME}']},
           classifiers=[
               'Environment :: Console', 'Operating System :: OS Independent',
               'License :: OSI Approved :: Apache Software License',
@@ -34,7 +37,5 @@ with open('README.md', 'r', encoding='utf_8') as fd:
           ],
           python_requires=">=3.6",
           install_requires=['click>=7'],
-          entry_points={
-              'console_scripts': ['assessment = assessment:main']
-          })
+          entry_points={'console_scripts': ['assessment = assessment:main']})
 

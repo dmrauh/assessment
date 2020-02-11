@@ -11,12 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from click import argument, command, echo, option, Path, version_option
+import click
+
 from configparser import ConfigParser
 from dataclasses import dataclass
+from importlib.resources import read_text
 from pprint import pformat
 from statistics import mean
 from typing import Dict, Iterable, Mapping, Tuple
+
+from . import data
+
+GRADES_FILE_NAME = 'grades.ini'
 
 DELTA = 1e-3
 
@@ -288,13 +294,35 @@ def assess(config: ConfigParser, weights: Mapping[str, int]) -> str:
     return print_grades(averages_printer, overalls_printer)
 
 
-@command()
-@argument('grades', type=Path(exists=True), required=True)
-@option('--out', type=Path(), help='Save assessment to file.')
-@option('--weights',
-        is_flag=True,
-        help='Show the section\'s weights and exit.')
-@version_option()
+def copy_grades(ctx: click.Context, param: click.Option, value: bool) -> None:
+
+    if not value or ctx.resilient_parsing:
+        return
+
+    default_grades = read_text(data, GRADES_FILE_NAME)
+
+    with open(GRADES_FILE_NAME, 'w', encoding='utf_8') as fh:
+        fh.write(default_grades)
+
+    ctx.exit()
+
+
+@click.command()
+@click.argument('grades', type=click.Path(exists=True), required=True)
+@click.option('-o',
+              '--out',
+              type=click.Path(),
+              help='Save assessment to file.')
+@click.option('--copy-grades',
+              is_flag=True,
+              callback=copy_grades,
+              expose_value=False,
+              is_eager=True,
+              help='Copy default grades to the current working directory.')
+@click.option('--weights',
+              is_flag=True,
+              help='Show the section\'s weights and exit.')
+@click.version_option()
 def main(grades: str, out: str, weights: bool) -> None:
 
     config = load_config(grades)
