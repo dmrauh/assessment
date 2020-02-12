@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from importlib.resources import read_text
 from pprint import pformat
 from statistics import mean
-from typing import Dict, Iterable, Mapping, Tuple
+from typing import Any, Dict, Iterable, Mapping, Tuple, Union
 
 from . import data
 
@@ -113,7 +113,7 @@ class GradeSections:
 
 def print_weights(weights: Mapping[str, int]) -> None:
 
-    echo(pformat(weights))
+    click.echo(pformat(weights))
 
 
 def config_items_to_dict(
@@ -133,7 +133,7 @@ def print_grades(averages_printer: AveragesPrinter,
     assessment = (str(averages_printer) + '\n' + str(f'{"-"*33}\n') +
                   str(overalls_printer))
 
-    echo(assessment)
+    click.echo(assessment)
 
     return assessment
 
@@ -294,7 +294,9 @@ def assess(config: ConfigParser, weights: Mapping[str, int]) -> str:
     return print_grades(averages_printer, overalls_printer)
 
 
-def copy_grades(ctx: click.Context, param: click.Option, value: bool) -> None:
+def copy_grades(ctx: click.Context, param: Union[click.Option,
+                                                 click.Parameter],
+                value: bool) -> None:
 
     if not value or ctx.resilient_parsing:
         return
