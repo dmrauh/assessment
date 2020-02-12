@@ -19,11 +19,11 @@ from importlib.resources import read_text
 from pprint import pformat
 from statistics import mean
 from typing import Any, Dict, Iterable, Mapping, Tuple, Union
-
 from . import data
 
-GRADES_FILE_NAME = 'grades.ini'
+__version__ = '1.1.1'
 
+GRADES_FILE_NAME = 'grades.ini'
 DELTA = 1e-3
 
 SPRACHE_KEY = 'sprache'
@@ -324,7 +324,7 @@ def copy_grades(ctx: click.Context, param: Union[click.Option,
 @click.option('--weights',
               is_flag=True,
               help='Show the section\'s weights and exit.')
-@click.version_option()
+@click.version_option(__version__)
 def main(grades: str, out: str, weights: bool) -> None:
 
     config = load_config(grades)

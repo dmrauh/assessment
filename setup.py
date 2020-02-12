@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from setuptools import setup
-
-from assessment import __version__ as version
+from assessment import __version__
 from assessment import GRADES_FILE_NAME
 
 with open('README.md', 'r', encoding='utf_8') as fd:
     setup(name='assessment',
-          version=version,
+          version=__version__,
           description='The Bewertungsbogen assessment tool.',
           long_description=fd.read(),
           long_description_content_type="text/markdown",
@@ -36,6 +35,6 @@ with open('README.md', 'r', encoding='utf_8') as fd:
               'Programming Language :: Python :: 3.6'
           ],
           python_requires=">=3.6",
-          install_requires=['click>=7'],
+          install_requires=['click>=7', 'setuptools'],
           entry_points={'console_scripts': ['assessment = assessment:main']})
 
