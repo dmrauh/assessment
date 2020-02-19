@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from importlib.resources import read_text
 from pprint import pformat
 from statistics import mean
-from typing import Any, Dict, Iterable, Mapping, Tuple, Union
+from typing import Dict, Iterable, Mapping, Tuple, Union
 from . import data
 
 __version__ = '1.1.1'
@@ -334,5 +334,6 @@ def main(grades: str, out: str, weights: bool) -> None:
         print_weights(section_weights)
     else:
         assessment = assess(config, section_weights)
-        if out: write_assessment(out, assessment)
+        if out:
+            write_assessment(out, assessment)
 
