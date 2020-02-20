@@ -2,12 +2,12 @@ assessment
 ==========
 
 assessment helps the stressed research assistant by calculating the final grade
-of theses, according to sub grades which are weighted by sections. The whole
-grade calculation is done as defined in the [evaluation
-sheet](https://git.rz.uni-augsburg.de/hoffmada/korrektur).
+of theses, according to sub-grades which are weighted by sections. The whole
+grade calculation is done as defined in the internal evaluation sheet of the
+Organic Computing Group Augsburg.
 
-This tool will almost certainly only used by the Organic Computing Group at the
-University of Augsburg but maybe it is also helpful for someone else.
+This tool will almost certainly only be used by the Organic Computing Group but
+maybe it is also helpful for someone else.
 
 Requirements
 ------------
@@ -19,7 +19,7 @@ Quick start
 
 `assessment` can be installed directly from git:
 
-    $ python3 -m pip install -U git+ssh://git@git.rz.uni-augsburg.de/oc-m/assessment.git
+    $ python3 -m pip install -U git+git://github.com/dmrauh/assessment.git
 
 Now, if python on your system is configured properly, you can calculate the
 grades based on your grades file like this:
@@ -54,3 +54,4 @@ Development status
 
 Although assessment was tested extensively during daily use, it is still lacking
 test cases, that verify its correct behavior.
+
